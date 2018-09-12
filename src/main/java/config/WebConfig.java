@@ -20,7 +20,7 @@ public class WebConfig extends WebMvcConfigurationSupport {
 	 * 配置静态资源的处理
 	 */
 	@Override
-	protected void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
+	public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
 		configurer.enable();
 	}
 
