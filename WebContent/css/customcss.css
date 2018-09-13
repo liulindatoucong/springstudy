@@ -1,0 +1,9 @@
+@charset "UTF-8";
+
+/* 右边frame框架样式 */
+.iframe_box {
+	border-width:0px;
+	width:100%;
+	height:100%;
+	overflow:hidden;
+}

@@ -12,4 +12,14 @@ public class HomeController {
 	public String login() {
 		return "login";
 	}
+	
+	@RequestMapping(value="index",method=RequestMethod.GET)
+	public String index() {
+		return "index";
+	}
+	
+	@RequestMapping(value="loginagain",method=RequestMethod.GET)
+	public String loginAgain() {
+		return "login";
+	}
 }
