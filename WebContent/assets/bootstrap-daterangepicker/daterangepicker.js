@@ -21,19 +21,19 @@
         this.ranges = {};
         this.opens = 'right';
         this.cb = function () { };
-        this.format = 'MM/dd/yyyy';
+        this.format = 'yyyy/MM/dd';
         this.separator = ' - ';
         this.showWeekNumbers = false;
         this.buttonClasses = ['btn-primary'];
         this.locale = {
-            applyLabel: 'Apply',
-            fromLabel: 'From',
-            toLabel: 'To',
+            applyLabel: '确定',
+            fromLabel: '从',
+            toLabel: '到',
             weekLabel: 'W',
-            customRangeLabel: 'Custom Range',
-            daysOfWeek: Date.CultureInfo.shortestDayNames,
-            monthNames: Date.CultureInfo.monthNames,
-            firstDay: 0
+            customRangeLabel: '自定义',
+            daysOfWeek: ["日", "一", "二", "三", "四", "五", "六"],
+            monthNames: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"],
+            firstDay: 1
         };
 
         localeObject = this.locale;

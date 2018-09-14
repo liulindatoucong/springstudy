@@ -148,7 +148,9 @@ var Script = function () {
 
     //daterange picker
 
-    $('#reservation').daterangepicker();
+    $('#reservation').daterangepicker({
+    	startDate: Date.today().add({ days: -3 })
+    });
 
     $('#reportrange').daterangepicker(
         {
