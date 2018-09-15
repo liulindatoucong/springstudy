@@ -24,12 +24,21 @@ import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
-import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 import org.xml.sax.InputSource;
 
 import web.webservice.service.WebServiceInterface;
 
+/**
+ * 获取NC的电池包发货单信息
+ * @author liulin
+ * @date 2018年9月15日 上午9:14:47
+ * @Description: TODO
+ */
+@Component
+@Qualifier("ncinvoicewebservice")
 public class NCInvoiceWebService implements WebServiceInterface {
 
 	private final String DISPATCHBILLSERVICEURL = "http://10.10.180.21:58888/uapws/service/IsdExt";
@@ -45,36 +54,28 @@ public class NCInvoiceWebService implements WebServiceInterface {
 	private final String PASSWORD = "sd";
 	
 	@Override
-	public String getResponseInfo(Map<String, String> paramMap) {
-		
-		return null;
+	public JSONObject getResponseInfo(Map<String, String> paramMap) throws ClientProtocolException, IOException, JDOMException {
+		Map<String, String> param = new HashMap<String, String>();
+		param.put("SITE", paramMap.get("SITE"));
+		param.put("STARTDATE", paramMap.get("STARTDATE"));
+		param.put("ENDDATE", paramMap.get("ENDDATE"));
+		JSONObject result = new NCInvoiceWebService().createHttpService(param);
+		return result;
 	}
 	
-	public static void main(String[] args) throws ClientProtocolException, IOException, JDOMException
-	{
-//		Map<String, String> hashMap = new HashMap<String, String>();
-//		hashMap.put("SITE", "1");
-//		hashMap.put("STARTDATE", "2018-03-01");
-//		hashMap.put("ENDDATE", "2018-09-30");
-//		new NCInvoiceWebService().createHttpComponent(hashMap);
-		
-		StringBuffer sb = new StringBuffer();
-		sb.append("<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\"><soap:Header><ns0:Urc xmlns:ns0=\"http://ws.uap.nc/lang\"><ns0:datasource>design</ns0:datasource><ns0:userCode>#UAP#</ns0:userCode><ns0:langCode>simpchn</ns0:langCode></ns0:Urc></soap:Header><soap:Body><ns1:executeResponse xmlns:ns1=\"http://itf.nc.sd/IsdExt\"><return>");
-		sb.append("{\"data\":[{\"billtype\":null,\"unit\":\"个\",\"billrownostatus\":0,\"num\":210,\"meterialspec\":\"EV-7688190-4p1s(旧模组）\",\"site\":\"1\",\"outtype\":\"普通\",\"customername\":\"TOJO MOTORS CORPORATION\",\"customercode\":\"320019\",\"outdept\":\"国际贸易部\",\"billcode\":\"DN2018030100000001\",\"billdate\":\"2018-03-01 09:25:20\",\"meterialname\":\"7688190-4p1s-旧模组\",\"meterialcode\":\"103010056\",\"billstatus\":4,\"salebillcode\":\"WLD20180005-1\",\"rowno\":\"10\",\"outemployee\":\"曾暑文\"}]");
-		sb.append("</return></ns1:executeResponse></soap:Body></soap:Envelope>");
-		
-		JSONObject jo = new NCInvoiceWebService().analysisXml(sb.toString());
-	}
 	
 	/**
-	 * 创建HTTP连接
+	 * 创建HTTP连接并实行服务
 	 * @author liulin
-	 * @throws IOException 
-	 * @throws ClientProtocolException 
-	 * @date 2018年9月14日 下午3:32:41
+	 * @date 2018年9月15日 上午8:58:58
 	 * @Description: TODO
+	 * @param paramMap
+	 * @return 解析结果
+	 * @throws ClientProtocolException
+	 * @throws IOException
+	 * @throws JDOMException
 	 */
-	public void createHttpComponent(Map<String, String> paramMap) throws ClientProtocolException, IOException
+	public JSONObject createHttpService(Map<String, String> paramMap) throws ClientProtocolException, IOException, JDOMException
 	{
 		HttpPost httpPost = new HttpPost(DISPATCHBILLSERVICEURL);
 		CredentialsProvider credsProvider = new BasicCredentialsProvider();
@@ -88,28 +89,37 @@ public class NCInvoiceWebService implements WebServiceInterface {
 		
 		CloseableHttpResponse response  = httpclient.execute(httpPost);
 		HttpEntity entity = response.getEntity();	
-		String result = readInfoFromInputStream(entity.getContent());
-
-		
+		String resultStr = readInfoFromInputStream(entity.getContent());
+		JSONObject returnJson = analysisXml(resultStr);
+		return returnJson;
 	}
 	
+	/**
+	 * 解析返回结果
+	 * @author liulin
+	 * @date 2018年9月15日 上午8:54:15
+	 * @Description: TODO
+	 * @param xmlResult
+	 * @return
+	 * @throws JDOMException
+	 * @throws IOException
+	 */
 	public JSONObject analysisXml(String xmlResult) throws JDOMException, IOException
 	{
 		// 解析获取所有子节点
        
-        List<Element> envelopeChildNote = getXmlElementNote(xmlResult).getChildren();
+	    List<Element> envelopeChildNote = getXmlElementNote(xmlResult).getChildren();
 		Element bodyEt = null;
-        for (int i = 0; i < envelopeChildNote.size(); i++) {
-            bodyEt = (Element) envelopeChildNote.get(i);// 循环依次得到子元素
-            if (bodyEt.getName().equals("Body")) {
-                break;
-            }
-        }
-       Element data1 = bodyEt.getChild("ns1:executeResponse");
-       Element data2 = data1.getChild("return");
+	    for (int i = 0; i < envelopeChildNote.size(); i++) {
+	        bodyEt = (Element) envelopeChildNote.get(i);// 循环依次得到子元素
+	        if (bodyEt.getName().equals("Body")) {
+	            break;
+	        }
+	    }
+        String body = bodyEt.getValue();
        
-       JSONObject jo = new JSONObject(data2.toString());
-       return jo;
+        JSONObject jo = new JSONObject(body);
+        return jo;
 	}
 	
 	
@@ -167,6 +177,7 @@ public class NCInvoiceWebService implements WebServiceInterface {
 		        break;
 		    out.append(buffer, 0, rsz);
 		}
+		
 		return out.toString();
 	}
 	
