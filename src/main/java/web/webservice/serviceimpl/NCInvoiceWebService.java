@@ -54,15 +54,23 @@ public class NCInvoiceWebService implements WebServiceInterface {
 	private final String PASSWORD = "sd";
 	
 	@Override
-	public JSONObject getResponseInfo(Map<String, String> paramMap) throws ClientProtocolException, IOException, JDOMException {
+	public JSONObject getResponseInfo(String plant, String startDate, String endDate) throws ClientProtocolException, IOException, JDOMException {
 		Map<String, String> param = new HashMap<String, String>();
-		param.put("SITE", paramMap.get("SITE"));
-		param.put("STARTDATE", paramMap.get("STARTDATE"));
-		param.put("ENDDATE", paramMap.get("ENDDATE"));
-		JSONObject result = new NCInvoiceWebService().createHttpService(param);
+		param.put("SITE", plant);
+		param.put("STARTDATE", startDate);
+		param.put("ENDDATE", endDate);
+		JSONObject result = createHttpService(param);
 		return result;
 	}
 	
+//	public static void main(String[] args) throws ClientProtocolException, IOException, JDOMException {
+//		Map<String, String> param = new HashMap<String, String>();
+//		param.put("SITE", "1");
+//		param.put("STARTDATE", "2018-03-01");
+//		param.put("ENDDATE", "2018-09-30");
+//		JSONObject result = new NCInvoiceWebService().createHttpService(param);
+//		System.out.println(result.toString());
+//	}
 	
 	/**
 	 * 创建HTTP连接并实行服务

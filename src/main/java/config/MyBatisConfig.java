@@ -2,7 +2,6 @@ package config;
 
 import javax.sql.DataSource;
 
-import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -50,7 +49,7 @@ public class MyBatisConfig {
 	{
 		SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
 		factoryBean.setDataSource(dataSource);
-		factoryBean.setConfigLocation(new ClassPathResource(""));
+		factoryBean.setConfigLocation(new ClassPathResource("mybatis/mybatis-config.xml"));
 		return factoryBean.getObject();
 	}
 	

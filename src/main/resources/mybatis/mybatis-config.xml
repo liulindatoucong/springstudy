@@ -9,9 +9,9 @@
   	</properties> 
   -->
   <typeAliases>
-  	<typeAlias alias="User" type="com.soundmagic.www.bigscreen.mybatis.domain.User"/>
+  	<typeAlias alias="BtsErpDelivery" type="web.mybatis.domain.BtsErpDelivery"/>
   </typeAliases>
   <mappers>
-  	<mapper resource="mybatis/mapper/UserMapper.xml"/>
+  	<mapper resource="mybatis/mapper/BtsErpDelivery.xml" />
   </mappers>
 </configuration>

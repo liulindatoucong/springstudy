@@ -42,7 +42,7 @@
  					 		<div class="form-group">
                                 <label class="control-label col-lg-1" for="selectSites">发货工厂:</label>
                                 <div class="col-lg-2">
-                                	<select class="form-control">
+                                	<select id="selectPlant" class="form-control">
                                     <option>3001</option>
                                     <option>3002</option>
                                 	</select>
@@ -51,11 +51,11 @@
                                 <label class="control-label col-lg-1" for="reservation">时间范围:</label>
                                 <div class="col-lg-3">
                                     <div class="input-prepend">
-                                        <input id="reservation" type="text" class=" form-control" />
+                                        <input id="reservation" type="text" class="form-control" readonly="readonly"/>
                                     </div>
                                 </div>
                                 
-                                <button type="button" class="btn btn-info col-lg-1"><i class="icon-refresh"></i>同步数据</button>
+                                <button id="syncErpData" type="button" class="btn btn-info col-lg-1"><i class="icon-refresh"></i>同步数据</button>
                                 
                             </div>
  					 	</form>
@@ -126,9 +126,12 @@
   	<script th:src="@{/js/form-component.js}" src="../../../js/form-component.js"></script>
   	
   	<script th:src="@{/js/custompage/invoice.js}" src="../../../js/custompage/invoice.js" type="text/javascript"></script>
-  	<script type="text/javascript">
+  	<script type="text/javascript" th:inline="javascript">
+  	/*<![CDATA[*/
+   	 var context = /*[[@{/}]]*/;
+    /*]]>*/
   	$(document).ready(function() {
-  		
+  		syncDataList();
     });
   	</script>
 </body>

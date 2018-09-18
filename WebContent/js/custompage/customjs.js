@@ -11,6 +11,6 @@ function iframeLoad()
 function click2page()
 {
 	$('#invoiceBtn').click(function(e) {
-		$("#inner_iframe").attr("src","synchdata/invoice");
+		$("#inner_iframe").attr("src","synchdataWeb/invoice");
 	});
 }

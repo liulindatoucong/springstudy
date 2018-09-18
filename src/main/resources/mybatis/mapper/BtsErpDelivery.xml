@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="web.mybatis.mapper.BtsErpDeliveryMapper"> 
+	<select id="getExistsHandleInSystem" parameterType="java.util.List" resultType="String">
+		select plant||VBILLCODE||VBILLROWNO from bts_erpdelivery where (plant,VBILLCODE,VBILLROWNO) in
+		<foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+			(#{plant}, #{VBILLCODE}, #{VBILLROWNO})
+		</foreach>
+	</select>
+	
+	
+	<insert id="insertBtsErpDelivery" parameterType="java.util.List">
+		INSERT INTO bts_erpdelivery(plant, MATERIAL, MATDESCRIPTION, MATSPEC, CUSCODE, CUSDESCRIPTION, BILLTYPENAME, VBILLCODE, 
+		VBILLDATE, VBILLDTYPE, VBILLDPNAME, VBILLDDNAME, VBILLVDEF2, VBILLROWNO, VBILLDNUM, VBILLDUNAME, DELIVERYNUM, STATUS,
+		CREATETIME, CREATEUSER) 
+		VALUES
+		<foreach collection="list" item="item" index="index"
+			separator=" , ">
+			(#{item.plant},#{item.material},#{item.matdescription},#{item.matspec},#{item.cuscode},#{item.cusdescription},#{item.billtypename},#{item.vbillcode},
+			#{item.vbilldate},#{item.vbilldtype},#{item.vbilldpname},#{item.vbillddname},#{item.vbillvdef2},#{item.vbillrowno},#{item.vbilldnum},#{item.vbillduname},
+			#{item.deliverynum},#{item.status},#{item.createtime},#{item.createuser})
+		</foreach>
+	</insert>
+	
+	<update id="updateBtsErpDeliveryStatus2delete" parameterType="java.util.List">
+		update bts_erpdelivery set STATUS = '30' where (plant,VBILLCODE,VBILLROWNO) in
+		<foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+			(#{plant}, #{VBILLCODE}, #{VBILLROWNO})
+		</foreach>
+	</update>
+</mapper>
