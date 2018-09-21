@@ -4,7 +4,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -25,6 +27,7 @@ public class InvoiceService implements InvoiceInterface {
 	@Qualifier("ncinvoicewebservice")
 	private WebServiceInterface ncWebInterface;
 	
+	@Autowired
 	private BtsErpDeliveryMapper erpDeliveryMapper;
 	/**
 	 * 发货单删除，单据号行项目删除
@@ -42,7 +45,11 @@ public class InvoiceService implements InvoiceInterface {
 	@Transactional
 	@Override
 	public List<BtsErpDelivery> updateInvoiceInfoFromNc(String plant, String startDate, String endDate, String user) throws Exception {
-		JSONObject data = ncWebInterface.getResponseInfo(plant, startDate, endDate);
+		Map<String, String> param = new HashMap<String, String>();
+		param.put("SITE", plant);
+		param.put("STARTDATE", startDate);
+		param.put("ENDDATE", endDate);
+		JSONObject data = ncWebInterface.getResponseInfo(param);
 		List<BtsErpDelivery> resultList = new ArrayList<BtsErpDelivery>();
 		if(SUCCESS.equals(data.getString("status")))
 		{
@@ -50,8 +57,14 @@ public class InvoiceService implements InvoiceInterface {
 			List<BtsErpDelivery> existsDeliverys = new ArrayList<BtsErpDelivery>();
 			List<BtsErpDelivery> deleteDeliverys = new ArrayList<BtsErpDelivery>();
 			splitDeliverys(jsonArray, existsDeliverys, deleteDeliverys, user);
-			addDeliverys2DataBase(existsDeliverys);
-			updateBtsErpDeliveryStatus2delete(deleteDeliverys);
+			if(existsDeliverys.size()!=0)
+			{
+				addDeliverys2DataBase(existsDeliverys);
+			}
+			if(deleteDeliverys.size()!=0)
+			{
+				deleteDeliverys = updateBtsErpDeliveryStatus2delete(deleteDeliverys);
+			}
 			resultList.addAll(existsDeliverys);
 			resultList.addAll(deleteDeliverys);
 		}
@@ -93,8 +106,23 @@ public class InvoiceService implements InvoiceInterface {
 	 * @Description: TODO
 	 * @param deleteDeliverys
 	 */
-	private void updateBtsErpDeliveryStatus2delete(List<BtsErpDelivery> deleteDeliverys) {
-		erpDeliveryMapper.updateBtsErpDeliveryStatus2delete(deleteDeliverys);
+	private List<BtsErpDelivery> updateBtsErpDeliveryStatus2delete(List<BtsErpDelivery> deleteDeliverys) {
+		List<String> deletesInDatabaseHandles = erpDeliveryMapper.getExistsHandleInSystem(deleteDeliverys);
+		List<BtsErpDelivery> deleteExistsInDatabase = new ArrayList<BtsErpDelivery>();
+		for(BtsErpDelivery deleteExistOne:deleteDeliverys)
+		{
+			String handle = deleteExistOne.getPlant()+deleteExistOne.getVbillcode()+deleteExistOne.getVbillrowno();
+			if(deletesInDatabaseHandles.contains(handle))
+			{
+				deleteExistsInDatabase.add(deleteExistOne);
+			}
+		}
+		if(deleteExistsInDatabase.size() > 0)
+		{
+			erpDeliveryMapper.updateBtsErpDeliveryStatus2delete(deleteExistsInDatabase);
+		}
+		return deleteExistsInDatabase;
+
 	}
 	
 	/**
@@ -112,8 +140,8 @@ public class InvoiceService implements InvoiceInterface {
 		for(Object oneDelivery:dataArray)
 		{
 			JSONObject jo = (JSONObject)oneDelivery;
-			String billstatus = jo.getString("billstatus");
-			String billrownostatus = jo.getString("billrownostatus");
+			String billstatus = String.valueOf(jo.getInt("billstatus"));
+			String billrownostatus = String.valueOf(jo.getInt("billrownostatus"));
 			String billcode = jo.getString("billcode");
 			String rowno = jo.getString("rowno");
 			String site = jo.getString("site");
@@ -122,13 +150,13 @@ public class InvoiceService implements InvoiceInterface {
 			delivery.setVbillrowno(rowno);
 			delivery.setPlant(site);
 			String meterialcode = jo.getString("meterialcode");
-			String meterialspec = jo.getString("meterialspec");
+			String meterialspec = String.valueOf(jo.get("meterialspec"));
 			String outemployee = jo.getString("outemployee");
 			String salebillcode = jo.getString("salebillcode");
-			String num = jo.getString("num");
+			String num = String.valueOf(jo.getInt("num"));
 			String unit = jo.getString("unit");
 			String meterialname = jo.getString("meterialname");
-			String billtype = jo.getString("billtype");
+			String billtype = String.valueOf(jo.get("billtype"));
 			String billdate = jo.getString("billdate");
 			String customercode = jo.getString("customercode");
 			String customername = jo.getString("customername");
@@ -152,15 +180,51 @@ public class InvoiceService implements InvoiceInterface {
 			delivery.setVbillvdef2(salebillcode);
 			if(NCDELETE.equals(billstatus)||NCDELETE.equals(billrownostatus))
 			{
-				delivery.setStatus(NEW);
+				delivery.setStatus(DELETE);
 				deleteDeliverys.add(delivery);
 			}
 			else
 			{
-				delivery.setStatus(DELETE);
-				deleteDeliverys.add(delivery);
+				delivery.setStatus(NEW);
+				existsDeliverys.add(delivery);
 			}
 		}
+	}
+
+	@Override
+	public String getDeliverysByPlantAndStr(String plant, String deliveryStr) throws Exception {
+		StringBuffer sb = new StringBuffer();
+		Map<String, String> paramMap = new HashMap<String, String>();
+		paramMap.put("plant", plant);
+		paramMap.put("delivery", deliveryStr);
+		List<BtsErpDelivery> deliverys =  erpDeliveryMapper.getDeliverysByPlantAndStr(paramMap);
+		sb.append("[");
+		for(int i = 0; i < deliverys.size(); i ++)
+		{
+			String vbillcode = deliverys.get(i).getVbillcode();
+			String rowNum = deliverys.get(i).getVbillrowno();
+			String materail = deliverys.get(i).getMaterial();
+			String materailDesc = deliverys.get(i).getMatdescription();
+			String cusCode = deliverys.get(i).getCuscode();
+			String cusDesc = deliverys.get(i).getCusdescription();
+			String vbilldnum =  deliverys.get(i).getVbilldnum();
+			String deliverynum = deliverys.get(i).getDeliverynum();
+			sb.append("{\"id\":").append((i+1)).append(",")
+			.append("\"vbillcode\":\"").append(vbillcode).append("\",")
+			.append("\"rowNum\":\"").append(rowNum).append("\",")
+			.append("\"materail\":\"").append(materail).append("\",")
+			.append("\"materailDesc\":\"").append(materailDesc).append("\",")
+			.append("\"cusCode\":\"").append(cusCode).append("\",")
+			.append("\"cusDesc\":\"").append(cusDesc).append("\",")
+			.append("\"vbilldnum\":\"").append(vbilldnum == null?"":vbilldnum).append("\",")
+			.append("\"deliverynum\":\"").append(deliverynum == null?"":deliverynum).append("\"},");
+			if(i == deliverys.size() - 1)
+			{
+				sb.deleteCharAt(sb.length()-1);
+			}
+		}
+		sb.append("]");
+		return sb.toString();
 	}
 	
 

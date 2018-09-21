@@ -12,16 +12,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import web.service.InvoiceInterface;
+import web.service.comm.ResultInfo;
 
 @Controller
 @RequestMapping({"/synchdataWeb"})
 public class SynchdataController {
 	
 	private String defaultUser= "liulin";
-	
-	private final String SUCCESS = "S";
-	
-	private final String FAULT = "F";
 	
 	@Autowired
 	private InvoiceInterface invoiceService;
@@ -42,10 +39,10 @@ public class SynchdataController {
 			String startDate = request.getParameter("startDate");
 			String endDate = request.getParameter("endDate");
 			result.put("data", invoiceService.updateInvoiceInfoFromNc(plant, startDate, endDate, defaultUser));
-			result.put("status", SUCCESS);
+			result.put("status", ResultInfo.SUCCESS.getValue());
 			result.put("msg", "");
 		} catch (Exception e) {
-			result.put("status", FAULT);
+			result.put("status", ResultInfo.FAIL.getValue());
 			result.put("msg", e.getMessage());
 		}
 		return result;

@@ -3,7 +3,14 @@ function iframeLoad()
 {
 	$("#inner_iframe").on("load",function() {
 	var height = document.getElementById("inner_iframe").contentWindow.document.body.scrollHeight;
-	$('#iframeContainer').height(height);
+	if(height>675)
+	{
+		$('#iframeContainer').height(height);
+	}
+	else
+	{
+		$('#iframeContainer').height(675);
+	}
 	});
 }
 
@@ -12,5 +19,9 @@ function click2page()
 {
 	$('#invoiceBtn').click(function(e) {
 		$("#inner_iframe").attr("src","synchdataWeb/invoice");
+	});
+	
+	$('#uploadinvoice').click(function(e) {
+		$("#inner_iframe").attr("src","uploadInfo/invoiceupload");
 	});
 }

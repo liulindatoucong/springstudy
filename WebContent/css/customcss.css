@@ -11,3 +11,11 @@
 .wrapper_custom {
 	margin-top: 0px;
 }
+
+.commInput {
+	font-size:14px;
+}
+
+.selectedtr {
+  background-color: #B0BED9;
+}

@@ -1,6 +1,7 @@
 package web.mybatis.mapper;
 
 import java.util.List;
+import java.util.Map;
 
 import web.mybatis.domain.BtsErpDelivery;
 
@@ -33,5 +34,15 @@ public interface BtsErpDeliveryMapper
 	 * @param btsErpDeliverys
 	 */
 	public void updateBtsErpDeliveryStatus2delete(List<BtsErpDelivery> btsErpDeliverys);
+
+	/**
+	 * 通过站点和发货单字符串查找信息
+	 * @author liulin
+	 * @date 2018年9月20日 下午4:27:44
+	 * @Description: TODO
+	 * @param paramMap
+	 * @return
+	 */
+	public List<BtsErpDelivery> getDeliverysByPlantAndStr(Map<String, String> paramMap);
 
 }

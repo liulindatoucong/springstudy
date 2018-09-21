@@ -11,8 +11,9 @@ import org.mybatis.spring.SqlSessionTemplate;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * mybatis配置参数
@@ -21,7 +22,8 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
  * @Description: TODO
  */
 @Configuration
-@MapperScan("web.mybatis.mapper")
+@MapperScan(basePackages = "web.mybatis.mapper")
+@EnableTransactionManagement
 public class MyBatisConfig {
 	
 
@@ -35,8 +37,8 @@ public class MyBatisConfig {
 	@Bean
 	public BasicDataSource dataSource() {
 		BasicDataSource bds = new BasicDataSource();
-		bds.setDriverClassName("com.mysql.jdbc.Driver");
-		bds.setUrl("jdbc:mysql://127.0.0.1:3306/tracesound");
+		bds.setDriverClassName("com.mysql.cj.jdbc.Driver");
+		bds.setUrl("jdbc:mysql://127.0.0.1:3306/tracesound?useUnicode=true&characterEncoding=UTF-8");
 		bds.setUsername("root");
 		bds.setPassword("liulin");
 		bds.setInitialSize(5);
@@ -49,7 +51,7 @@ public class MyBatisConfig {
 	{
 		SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
 		factoryBean.setDataSource(dataSource);
-		factoryBean.setConfigLocation(new ClassPathResource("mybatis/mybatis-config.xml"));
+		factoryBean.setConfigLocation(new DefaultResourceLoader().getResource("classpath:mybatis/mybatis-config.xml"));
 		return factoryBean.getObject();
 	}
 	

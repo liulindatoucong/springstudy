@@ -6,7 +6,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	<select id="getExistsHandleInSystem" parameterType="java.util.List" resultType="String">
 		select plant||VBILLCODE||VBILLROWNO from bts_erpdelivery where (plant,VBILLCODE,VBILLROWNO) in
 		<foreach collection="list" index="index" item="item" open="(" separator="," close=")">
-			(#{plant}, #{VBILLCODE}, #{VBILLROWNO})
+			(#{item.plant}, #{item.vbillcode}, #{item.vbillrowno})
 		</foreach>
 	</select>
 	
@@ -25,9 +25,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	</insert>
 	
 	<update id="updateBtsErpDeliveryStatus2delete" parameterType="java.util.List">
-		update bts_erpdelivery set STATUS = '30' where (plant,VBILLCODE,VBILLROWNO) in
+		update bts_erpdelivery set STATUS = '30' where (plant,VBILLCODE,VBILLROWNO) in 
 		<foreach collection="list" index="index" item="item" open="(" separator="," close=")">
-			(#{plant}, #{VBILLCODE}, #{VBILLROWNO})
+			(#{item.plant}, #{item.vbillcode}, #{item.vbillrowno})
 		</foreach>
 	</update>
+	
+	<select id="getDeliverysByPlantAndStr" parameterType="java.util.Map" resultType="BtsErpDelivery">
+		SELECT plant,vbillcode,vbillrowno,material,matdescription,cuscode,cusdescription,vbilldnum,deliverynum FROM tracesound.bts_erpdelivery 
+		where status = '10' and plant = #{plant} and vbillcode like concat('%',#{delivery},'%')
+	</select>
 </mapper>

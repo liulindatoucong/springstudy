@@ -1,6 +1,8 @@
 package web.webservice.serviceimpl;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.http.HttpEntity;
@@ -14,8 +16,9 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.jdom2.Element;
 import org.jdom2.JDOMException;
-import org.json.JSONObject;
+import org.json.JSONObject;	
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -23,41 +26,34 @@ import web.webservice.service.WebServiceInterface;
 import web.webservice.service.WebServiceUtils;
 
 /**
- * 获取NC的电池包发货单信息
+ * 
  * @author liulin
- * @date 2018年9月15日 上午9:14:47
+ * @date 2018年9月20日 下午1:43:29
  * @Description: TODO
  */
 @Component
-@Qualifier("ncinvoicewebservice")
-public class NCInvoiceWebService extends WebServiceUtils implements WebServiceInterface {
+@Qualifier("meserpoutlinewebservice")
+public class MESErpOutlineWebService extends WebServiceUtils implements WebServiceInterface {
 
-	private final String DISPATCHBILLSERVICEURL = "http://10.10.180.21:58888/uapws/service/IsdExt";
+	private final String ERPOUTLINESERVICEURL = "http://10.10.156.11:50000/sapdevwebservice/ExecutingServiceService";
 	
-	private final String HOST = "10.10.180.21";
+	private final String HOST = "10.10.156.11";
 	
-	private final int PORT = 58888;
+	private final int PORT = 50000;
 	
-	private final String SERVICE_CODE = "DispatchBillService";
+	private final String SERVICE_CODE = "GetNeedTransferSfcOfPackService";
 	
-	private final String USERNAME = "sd";
+	private final String USERNAME = "liulin";
 	
-	private final String PASSWORD = "sd";
-	
+	private final String PASSWORD = "sap12345";
+
 	@Override
-	public JSONObject getResponseInfo(Map<String, String> param) throws ClientProtocolException, IOException, JDOMException {
+	public JSONObject getResponseInfo(Map<String, String> param)
+			throws ClientProtocolException, IOException, JDOMException {
 		JSONObject result = createHttpService(param);
 		return result;
 	}
-	
-//	public static void main(String[] args) throws ClientProtocolException, IOException, JDOMException {
-//		Map<String, String> param = new HashMap<String, String>();
-//		param.put("SITE", "1");
-//		param.put("STARTDATE", "2018-08-01");
-//		param.put("ENDDATE", "2018-08-02");
-//		JSONObject result = new NCInvoiceWebService().createHttpService(param);
-//		System.out.println(result.toString());
-//	}
+
 	
 	/**
 	 * 创建HTTP连接并实行服务
@@ -72,7 +68,7 @@ public class NCInvoiceWebService extends WebServiceUtils implements WebServiceIn
 	 */
 	public JSONObject createHttpService(Map<String, String> paramMap) throws ClientProtocolException, IOException, JDOMException
 	{
-		HttpPost httpPost = new HttpPost(DISPATCHBILLSERVICEURL);
+		HttpPost httpPost = new HttpPost(ERPOUTLINESERVICEURL);
 		CredentialsProvider credsProvider = new BasicCredentialsProvider();
 		credsProvider.setCredentials(new AuthScope(HOST, PORT), new UsernamePasswordCredentials(USERNAME, PASSWORD));
 		CloseableHttpClient httpclient = HttpClients.custom()
@@ -81,7 +77,6 @@ public class NCInvoiceWebService extends WebServiceUtils implements WebServiceIn
 		httpPost.setHeader("Content-Type", "text/xml;charset=UTF-8");
 		StringEntity se = new StringEntity(createStringRequest(paramMap));
 		httpPost.setEntity(se);
-		
 		CloseableHttpResponse response  = httpclient.execute(httpPost);
 		HttpEntity entity = response.getEntity();	
 		String resultStr = readInfoFromInputStream(entity.getContent());
@@ -89,8 +84,38 @@ public class NCInvoiceWebService extends WebServiceUtils implements WebServiceIn
 		return returnJson;
 	}
 	
-
 	
+	/**
+	 * 解析返回结果
+	 * @author liulin
+	 * @date 2018年9月15日 上午8:54:15
+	 * @Description: TODO
+	 * @param xmlResult
+	 * @return
+	 * @throws JDOMException
+	 * @throws IOException
+	 */
+	@Override
+	protected JSONObject analysisXml(String xmlResult) throws JDOMException, IOException
+	{
+		// 解析获取所有子节点
+       
+	    List<Element> envelopeChildNote = getXmlElementNote(xmlResult).getChildren();
+		Element bodyEt = null;
+	    for (int i = 0; i < envelopeChildNote.size(); i++) {
+	        bodyEt = (Element) envelopeChildNote.get(i);// 循环依次得到子元素
+	        if (bodyEt.getName().equals("Body")) {
+	            break;
+	        }
+	    }
+        String body = bodyEt.getValue();
+        //去除掉其它数据，只留下data数据
+        body = body.substring(body.indexOf("{"), body.length());
+        JSONObject jo = new JSONObject(body);
+        return jo;
+	}
+	
+
 	/**
 	 * 创建HTTP请求字符串
 	 * @author liulin
@@ -101,25 +126,15 @@ public class NCInvoiceWebService extends WebServiceUtils implements WebServiceIn
 	private String createStringRequest(Map<String, String> paramMap)
 	{
 		StringBuffer sb = new StringBuffer();
-		sb.append("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:isd=\"http://itf.nc.sd/IsdExt\">");
-		sb.append("<soapenv:Header>");
-		sb.append("<wsse:Security xmlns:wsse=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd\" soapenv:mustUnderstand=\"1\">");
-		sb.append("<wsse:UsernameToken>");
-		sb.append("<wsse:Username>");
-		sb.append(USERNAME);
-		sb.append("</wsse:Username>");
-		sb.append("<wsse:Password Type=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText\">");
-		sb.append(PASSWORD);
-        sb.append("</wsse:Password>");
-        sb.append("</wsse:UsernameToken>");
-        sb.append("</wsse:Security>");
-        sb.append("</soapenv:Header>");
-		sb.append("<soapenv:Body>");
-		sb.append("<isd:execute>");
-		sb.append("<string>").append(createKeyRequestByParam(paramMap)).append("</string>");
-		sb.append("</isd:execute>");
-		sb.append("</soapenv:Body>");
-		sb.append("</soapenv:Envelope>");
+		sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?><SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">");
+		sb.append("<SOAP-ENV:Body>");
+		sb.append("<yq1:execute xmlns:yq1=\"http://base.ws.sapdev.com/\">");
+		sb.append("<pRequest>");
+		sb.append(createKeyRequestByParam(paramMap));
+		sb.append("</pRequest>");
+		sb.append("</yq1:execute>");
+		sb.append("</SOAP-ENV:Body>");
+		sb.append("</SOAP-ENV:Envelope>");
 		return sb.toString();
 	}
 	
@@ -134,10 +149,9 @@ public class NCInvoiceWebService extends WebServiceUtils implements WebServiceIn
 	private String createKeyRequestByParam(Map<String, String> paramMap)
 	{
 		StringBuffer sb = new StringBuffer();
-		sb.append("{").append("'serviceCode':'").append(SERVICE_CODE).append("',")
-		.append("'data':{'SITE':'").append(paramMap.get("SITE")).append("',")
-		.append("'STARTDATE':'").append(paramMap.get("STARTDATE")).append("',")
-		.append("'ENDDATE':").append(paramMap.get("ENDDATE")).append("'}}");
+		sb.append("<site>").append(paramMap.get("SITE")).append("</site>")
+		.append("<data>").append(paramMap.get("ITEMS")).append("</data>")
+		.append("<serviceCode>").append(SERVICE_CODE).append("</serviceCode>");
 		return sb.toString();
 	}
 
